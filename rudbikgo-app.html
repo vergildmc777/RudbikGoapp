@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>RudbikGo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; background: #FAFAF7; font-family: 'DM Sans', sans-serif; overflow: hidden; }
+
+    .app { display: flex; flex-direction: column; height: 100vh; max-width: 430px; margin: 0 auto; background: #FAFAF7; position: relative; }
+
+    /* STATUS BAR */
+    .status-bar { display: flex; justify-content: space-between; padding: 14px 24px 4px; font-size: 12px; font-weight: 500; color: #1C1208; flex-shrink: 0; }
+
+    /* SCREEN */
+    .screen { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .screen::-webkit-scrollbar { display: none; }
+
+    /* BOTTOM NAV */
+    .nav-bar { display: flex; justify-content: space-around; align-items: center; padding: 12px 0 env(safe-area-inset-bottom, 16px); background: #FAFAF7; border-top: 1px solid #EDEBE6; flex-shrink: 0; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s; position: relative; padding: 0 20px; }
+    .nav-icon { font-size: 20px; }
+    .nav-label { font-size: 10px; letter-spacing: 0.5px; }
+    .nav-item.active .nav-label { color: #C8703A; font-weight: 500; }
+    .nav-item.active .nav-icon { filter: none; }
+    .nav-item:not(.active) .nav-label { color: #9B8B77; }
+    .badge { position: absolute; top: -4px; right: 8px; background: #C8703A; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; }
+
+    /* HERO */
+    .hero { background: linear-gradient(160deg, #2C1810 0%, #5C3317 60%, #8B4513 100%); padding: 50px 24px 36px; color: white; position: relative; overflow: hidden; }
+    .hero::after { content: ''; position: absolute; right: -30px; top: -30px; width: 200px; height: 200px; border-radius: 50%; background: rgba(200,160,110,0.15); pointer-events: none; }
+    .hero::before { content: ''; position: absolute; left: -50px; bottom: -50px; width: 250px; height: 250px; border-radius: 50%; background: rgba(200,160,110,0.08); pointer-events: none; }
+    .tag { background: rgba(200,160,110,0.3); border: 1px solid rgba(200,160,110,0.5); color: #C8A96E; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 16px; }
+    .hero h1 { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 300; line-height: 1.2; margin-bottom: 8px; }
+    .hero p { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 24px; }
+
+    /* BUTTONS */
+    .btn-primary { background: #C8703A; color: white; border: none; padding: 14px 28px; border-radius: 30px; font-size: 13px; font-weight: 500; cursor: pointer; letter-spacing: 0.5px; transition: all 0.2s; }
+    .btn-primary:active { background: #A85C2E; transform: scale(0.98); }
+
+    /* TRUST STRIP */
+    .trust-strip { display: flex; justify-content: space-around; background: white; padding: 16px 10px; border-top: 1px solid #EDEBE6; border-bottom: 1px solid #EDEBE6; margin-bottom: 8px; }
+    .trust-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .trust-icon { font-size: 20px; }
+    .trust-text { font-size: 9px; color: #7B6B5B; text-align: center; max-width: 60px; line-height: 1.3; }
+
+    /* SECTION */
+    .section { padding: 24px 24px 4px; }
+    .section-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 400; color: #1C1208; margin-bottom: 4px; }
+    .section-sub { font-size: 12px; color: #9B8B77; margin-bottom: 16px; letter-spacing: 0.3px; }
+
+    /* PRODUCT CARDS */
+    .products-grid { display: flex; flex-direction: column; gap: 14px; padding: 8px 24px 24px; }
+    .product-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 2px 20px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.15s; display: flex; }
+    .product-card:active { transform: scale(0.98); }
+    .product-img-placeholder { width: 110px; height: 110px; display: flex; align-items: center; justify-content: center; font-size: 42px; flex-shrink: 0; }
+    .product-info { padding: 14px 14px 14px 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .product-name { font-family: 'Cormorant Garamond', serif; font-size: 17px; color: #1C1208; font-weight: 600; margin-bottom: 4px; }
+    .product-sub { font-size: 11px; color: #9B8B77; margin-bottom: 10px; line-height: 1.4; }
+    .price-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .price { font-size: 16px; font-weight: 500; color: #1C1208; }
+    .price-old { font-size: 12px; color: #B5A898; text-decoration: line-through; }
+    .discount-badge { background: #E8F5E9; color: #2E7D32; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 10px; }
+
+    /* DETAIL */
+    .detail-img-placeholder { width: 100%; height: 280px; display: flex; align-items: center; justify-content: center; font-size: 90px; }
+    .back-btn { position: absolute; top: 50px; left: 20px; width: 40px; height: 40px; background: rgba(255,255,255,0.92); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; border: none; box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+    .detail-body { padding: 22px 24px 36px; }
+    .detail-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+    .detail-name { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 400; color: #1C1208; flex: 1; margin-right: 12px; }
+    .detail-sub { font-size: 13px; color: #9B8B77; margin-bottom: 14px; }
+    .detail-price-row { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .detail-price { font-family: 'Cormorant Garamond', serif; font-size: 32px; color: #C8703A; }
+    .detail-desc { font-size: 13px; color: #5C4D3D; line-height: 1.75; margin-bottom: 18px; }
+    .benefits { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .benefit-pill { background: #F5F0E8; color: #5C4D3D; font-size: 11px; padding: 6px 14px; border-radius: 20px; }
+    .info-strip { background: #F5F0E8; border-radius: 14px; padding: 12px 16px; margin-bottom: 20px; display: flex; gap: 16px; font-size: 12px; color: #5C4D3D; }
+    .add-btn { width: 100%; background: #1C1208; color: white; border: none; padding: 18px; border-radius: 30px; font-size: 14px; font-weight: 500; cursor: pointer; letter-spacing: 0.5px; transition: background 0.3s; }
+    .add-btn.added { background: #2E7D32; }
+
+    /* REVIEWS */
+    .reviews-scroll { display: flex; gap: 12px; overflow-x: auto; padding: 0 24px 28px; scrollbar-width: none; }
+    .reviews-scroll::-webkit-scrollbar { display: none; }
+    .review-card { background: white; border-radius: 16px; padding: 16px; min-width: 220px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); flex-shrink: 0; }
+    .review-stars { color: #C8703A; font-size: 12px; margin-bottom: 8px; }
+    .review-text { font-size: 12px; color: #5C4D3D; line-height: 1.5; font-style: italic; margin-bottom: 10px; }
+    .review-author { font-family: 'Cormorant Garamond', serif; font-size: 14px; color: #1C1208; font-weight: 600; }
+
+    /* CART */
+    .cart-header { padding: 54px 24px 16px; }
+    .cart-title { font-family: 'Cormorant Garamond', serif; font-size: 30px; color: #1C1208; }
+    .cart-item { background: white; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px; margin: 0 24px 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+    .cart-emoji { font-size: 32px; width: 48px; text-align: center; flex-shrink: 0; }
+    .cart-item-name { font-family: 'Cormorant Garamond', serif; font-size: 16px; color: #1C1208; font-weight: 600; }
+    .cart-item-price { font-size: 13px; color: #9B8B77; margin-top: 2px; }
+    .remove-btn { margin-left: auto; background: #FFF0F0; border: none; color: #E57373; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; }
+    .cart-total { margin: 16px 24px 8px; background: #1C1208; border-radius: 20px; padding: 20px; color: white; }
+    .cart-total-label { font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+    .cart-total-amount { font-family: 'Cormorant Garamond', serif; font-size: 38px; margin-bottom: 16px; }
+    .checkout-btn { width: 100%; background: #C8703A; color: white; border: none; padding: 16px; border-radius: 25px; font-size: 14px; font-weight: 500; cursor: pointer; letter-spacing: 0.5px; }
+    .empty-cart { text-align: center; padding: 80px 24px; }
+    .empty-cart .empty-icon { font-size: 64px; }
+    .empty-cart p { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #9B8B77; margin-top: 16px; line-height: 1.5; }
+
+    /* PAGE HIDDEN */
+    .page { display: none; }
+    .page.active { display: block; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <div class="status-bar">
+    <span>RudbikGo</span>
+    <span>🌿</span>
+  </div>
+
+  <div class="screen">
+    <!-- HOME -->
+    <div class="page active" id="page-home">
+      <div class="hero">
+        <div class="tag">✦ Cuidado Capilar Natural</div>
+        <h1>Tu cabello,<br><em>su mejor versión</em></h1>
+        <p>Ingredientes naturales. Resultados visibles desde las primeras semanas.</p>
+        <button class="btn-primary" onclick="goTo('shop')">Ver Productos →</button>
+      </div>
+
+      <div class="trust-strip">
+        <div class="trust-item"><span class="trust-icon">🚚</span><span class="trust-text">Envío 24/48h</span></div>
+        <div class="trust-item"><span class="trust-icon">💳</span><span class="trust-text">Pago al recibir</span></div>
+        <div class="trust-item"><span class="trust-icon">⭐</span><span class="trust-text">10K+ clientes</span></div>
+        <div class="trust-item"><span class="trust-icon">↩️</span><span class="trust-text">30 días garantía</span></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Best Sellers</div>
+        <div class="section-sub">Los más amados por nuestra comunidad</div>
+      </div>
+      <div class="products-grid" id="home-products"></div>
+
+      <div class="section">
+        <div class="section-title">Lo que dicen</div>
+        <div class="section-sub">Opiniones reales de clientes reales</div>
+      </div>
+      <div class="reviews-scroll">
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <div class="review-text">"Me devolvió el volumen sin gastar en tratamientos caros. ¡Por fin dejó de caer!"</div>
+          <div class="review-author">Ana-María, 32 años</div>
+        </div>
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <div class="review-text">"¡No esperaba que funcionara tan rápido. La sensación es increíble!"</div>
+          <div class="review-author">Abigail, 29 años</div>
+        </div>
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <div class="review-text">"Me dejó la piel súper suave y ligera. ¡Estoy obsesionada!"</div>
+          <div class="review-author">Irina, 34 años</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHOP -->
+    <div class="page" id="page-shop">
+      <div class="section" style="padding-top:54px">
+        <div class="section-title" style="font-size:28px">Nuestra Selección</div>
+        <div class="section-sub">Todos los productos RudbikGo</div>
+      </div>
+      <div class="products-grid" id="shop-products"></div>
+    </div>
+
+    <!-- DETAIL -->
+    <div class="page" id="page-detail">
+      <div style="position:relative">
+        <div class="detail-img-placeholder" id="detail-emoji"></div>
+        <button class="back-btn" onclick="goBack()">←</button>
+      </div>
+      <div class="detail-body">
+        <div class="detail-header-row">
+          <div class="detail-name" id="detail-name"></div>
+          <span class="discount-badge" id="detail-discount" style="font-size:12px;padding:4px 12px;margin-top:6px"></span>
+        </div>
+        <div class="detail-sub" id="detail-sub"></div>
+        <div class="detail-price-row">
+          <span class="detail-price" id="detail-price"></span>
+          <span class="price-old" style="font-size:16px" id="detail-original"></span>
+        </div>
+        <div class="detail-desc" id="detail-desc"></div>
+        <div class="benefits" id="detail-benefits"></div>
+        <div class="info-strip">
+          <span>🚚 Envío 24-48h</span>
+          <span>💳 Pago al recibir</span>
+          <span>↩️ 30 días</span>
+        </div>
+        <button class="add-btn" id="add-btn" onclick="addToCart()">Añadir al carrito</button>
+      </div>
+    </div>
+
+    <!-- CART -->
+    <div class="page" id="page-cart">
+      <div class="cart-header">
+        <div class="cart-title">Tu Carrito 🛒</div>
+      </div>
+      <div id="cart-content"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="nav-bar">
+    <div class="nav-item active" id="nav-home" onclick="goTo('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Inicio</span>
+    </div>
+    <div class="nav-item" id="nav-shop" onclick="goTo('shop')">
+      <span class="nav-icon">🌿</span>
+      <span class="nav-label">Productos</span>
+    </div>
+    <div class="nav-item" id="nav-cart" onclick="goTo('cart')" style="position:relative">
+      <span class="nav-icon">🛒</span>
+      <span class="nav-label">Carrito</span>
+      <span class="badge" id="cart-badge" style="display:none">0</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const products = [
+    {
+      id: 1,
+      name: "Crema de Jengibre",
+      subtitle: "Fortalece tu cabello desde la raíz",
+      price: 29.90,
+      original: 59.80,
+      discount: "50%",
+      emoji: "🫚",
+      bg: "#FFF8EE",
+      description: "Fórmula activa con jengibre y extractos botánicos. Estimula la circulación del cuero cabelludo y fortalece el folículo capilar sin sulfatos ni químicos agresivos.",
+      benefits: ["Estimula la circulación", "Fortalece la raíz", "Sin sulfatos"],
+    },
+    {
+      id: 2,
+      name: "Lumiéra Skin Corrector",
+      subtitle: "Sérum iluminador corrector de manchas",
+      price: 29.95,
+      original: 34.99,
+      discount: "14%",
+      emoji: "✨",
+      bg: "#FFF0F5",
+      description: "Sérum iluminador de 50ml para una piel radiante, uniforme y sin imperfecciones. Resultados visibles desde las primeras semanas.",
+      benefits: ["Piel radiante", "Reduce manchas", "50ml de sérum"],
+    },
+    {
+      id: 3,
+      name: "Aceite de Romero",
+      subtitle: "Crecimiento y Reparación Capilar",
+      price: 32.90,
+      original: 65.80,
+      discount: "50%",
+      emoji: "🌿",
+      bg: "#F0F7F2",
+      description: "Aceite esencial de romero para el cuidado del cabello. Estimula el crecimiento y repara el daño capilar con ingredientes 100% naturales.",
+      benefits: ["100% natural", "Crecimiento visible", "Repara el daño"],
+    },
+  ];
+
+  let cart = [];
+  let currentProduct = null;
+  let prevScreen = 'home';
+  let currentScreen = 'home';
+
+  function renderProductCard(p, container) {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.innerHTML = `
+      <div class="product-img-placeholder" style="background:${p.bg}">${p.emoji}</div>
+      <div class="product-info">
+        <div>
+          <div class="product-name">${p.name}</div>
+          <div class="product-sub">${p.subtitle}</div>
+        </div>
+        <div class="price-row">
+          <span class="price">€${p.price.toFixed(2)}</span>
+          <span class="price-old">€${p.original.toFixed(2)}</span>
+          <span class="discount-badge">-${p.discount}</span>
+        </div>
+      </div>
+    `;
+    card.onclick = () => openDetail(p);
+    container.appendChild(card);
+  }
+
+  function init() {
+    const homeGrid = document.getElementById('home-products');
+    const shopGrid = document.getElementById('shop-products');
+    products.forEach(p => {
+      renderProductCard(p, homeGrid);
+      renderProductCard(p, shopGrid);
+    });
+  }
+
+  function goTo(screen) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + screen).classList.add('active');
+    document.getElementById('nav-' + (screen === 'detail' ? prevScreen : screen)).classList.add('active');
+    document.querySelector('.screen').scrollTop = 0;
+    if (screen !== 'detail') { prevScreen = screen; currentScreen = screen; }
+    if (screen === 'cart') renderCart();
+  }
+
+  function openDetail(p) {
+    currentProduct = p;
+    document.getElementById('detail-emoji').style.background = p.bg;
+    document.getElementById('detail-emoji').textContent = p.emoji;
+    document.getElementById('detail-name').textContent = p.name;
+    document.getElementById('detail-sub').textContent = p.subtitle;
+    document.getElementById('detail-price').textContent = '€' + p.price.toFixed(2);
+    document.getElementById('detail-original').textContent = '€' + p.original.toFixed(2);
+    document.getElementById('detail-discount').textContent = '-' + p.discount;
+    document.getElementById('detail-desc').textContent = p.description;
+    const bDiv = document.getElementById('detail-benefits');
+    bDiv.innerHTML = p.benefits.map(b => `<span class="benefit-pill">✓ ${b}</span>`).join('');
+    const btn = document.getElementById('add-btn');
+    btn.textContent = 'Añadir al carrito';
+    btn.className = 'add-btn';
+    goTo('detail');
+  }
+
+  function goBack() {
+    goTo(prevScreen);
+  }
+
+  function addToCart() {
+    if (!currentProduct) return;
+    const exists = cart.find(c => c.id === currentProduct.id);
+    if (exists) exists.qty++;
+    else cart.push({ ...currentProduct, qty: 1 });
+    const btn = document.getElementById('add-btn');
+    btn.textContent = '✓ Añadido al carrito';
+    btn.className = 'add-btn added';
+    setTimeout(() => {
+      btn.textContent = 'Añadir al carrito';
+      btn.className = 'add-btn';
+    }, 1500);
+    updateBadge();
+  }
+
+  function removeFromCart(id) {
+    cart = cart.filter(c => c.id !== id);
+    updateBadge();
+    renderCart();
+  }
+
+  function updateBadge() {
+    const total = cart.reduce((a, b) => a + b.qty, 0);
+    const badge = document.getElementById('cart-badge');
+    badge.textContent = total;
+    badge.style.display = total > 0 ? 'flex' : 'none';
+  }
+
+  function renderCart() {
+    const container = document.getElementById('cart-content');
+    container.innerHTML = '';
+    if (cart.length === 0) {
+      container.innerHTML = `
+        <div class="empty-cart">
+          <div class="empty-icon">🛒</div>
+          <p>Tu carrito está vacío.<br>¡Explora nuestros productos!</p>
+          <button class="btn-primary" style="margin-top:24px" onclick="goTo('shop')">Ver Productos</button>
+        </div>`;
+      return;
+    }
+    cart.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'cart-item';
+      el.innerHTML = `
+        <div class="cart-emoji">${item.emoji}</div>
+        <div>
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">€${item.price.toFixed(2)} × ${item.qty}</div>
+        </div>
+        <button class="remove-btn" onclick="removeFromCart(${item.id})">×</button>
+      `;
+      container.appendChild(el);
+    });
+    const total = cart.reduce((a, b) => a + b.price * b.qty, 0);
+    const totalEl = document.createElement('div');
+    totalEl.className = 'cart-total';
+    totalEl.innerHTML = `
+      <div class="cart-total-label">Total</div>
+      <div class="cart-total-amount">€${total.toFixed(2)}</div>
+      <button class="checkout-btn" onclick="checkout()">Finalizar Pedido →</button>
+    `;
+    container.appendChild(totalEl);
+  }
+
+  function checkout() {
+    alert('🎉 ¡Pedido recibido! Gracias por comprar en RudbikGo. Te contactaremos pronto.');
+    cart = [];
+    updateBadge();
+    renderCart();
+  }
+
+  init();
+</script>
+</body>
+</html>
