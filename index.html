@@ -421,3 +421,16 @@ function showToast(msg) {
 let deferredPrompt = null
 
   
+render();
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'block';
+  document.getElementById('install-banner').addEventListener('click', () => {
+    deferredPrompt.prompt();
+  });
+});
+</script>
+</body>
+</html>
